@@ -2,20 +2,35 @@ let time = 0;            // keeps track of animation time for rotation of epicyc
 let wave = []            // stores the wave points generated from the epicycles
 
 let slider;              // slider that controls number of Fourier terms
+let waveTypeSelect;      // dropdown to choose waveform type
 
 function setup() {
     createCanvas(1900, 700);           // create canvas of given size
 
     slider = createSlider(1, 1000, 1); // slider(min, max, starting value)
-    slider.position(820, 200);         // position of the slider on screen
-
+    slider.position(420, 100);         // position of the slider on screen
     // 🔹 Increase slider size
-    slider.style("width", "400px");    // sets slider length in pixels
+    slider.style("width", "1200px");    // sets slider length in pixels
+
+
+    // Dropdown (choice list) for waveform type
+    fill(255);
+    noStroke();
+    textSize(20);
+    text("Select Wavetype- ", 760, 160);
+    waveTypeSelect = createSelect();
+    waveTypeSelect.position(600, 160); // position above the slider
+    waveTypeSelect.option('Square');
+    waveTypeSelect.option('Sawtooth');
+    waveTypeSelect.option('Triangle');
+    waveTypeSelect.selected('Square'); // default
+    waveTypeSelect.style('font-size', '20px');
 }
 
 function draw() {
     background(0);                      // clear screen every frame (black background)
 
+    
     // ==============================
     // 🔹 NEW: Show slider value & n
     // ==============================
@@ -23,7 +38,8 @@ function draw() {
     fill(255);                          // white text
     noStroke();                         // no outline for text
     textSize(20);                       // text size
-    text("Number of terms: " + slider.value(), 930, 250); // display the current number of Fourier terms
+    text("Number of terms: " + slider.value(), 930, 150); // display the current number of Fourier terms
+    text("Select Wavetype - ", 430, 180);  // display label for waveform type dropdown
                                         
 
     // let currentN = (slider.value() - 1) * 2 + 1;  // largest n (odd number)
@@ -38,15 +54,37 @@ function draw() {
     let x = 0;                          // x position of current endpoint of epicycle
     let y = 0;                          // y position of current endpoint of epicycle
 
+    let type = waveTypeSelect.value();  // current waveform choice
+
     // loop through Fourier series terms based on slider value
     for (let i = 0; i < slider.value(); i++) {
 
         let prevx = x;                  // store previous x position before adding new vector
         let prevy = y;                  // store previous y position
 
-        let n = i * 2 + 1;              // only odd harmonics (1,3,5,7,...)
-        let radius = 75 * (4 / (n * PI));
-                                        // amplitude of each Fourier term (circle radius)
+        let n;
+        let radius;
+
+        // ==============================
+        // Choose formula by wave type
+        // ==============================
+        if (type === 'Square') {
+            // Square wave: only odd harmonics 1,3,5,...
+            // f(x) ~ 4/π Σ (1/n) sin(nx) over n odd
+            n = i * 2 + 1;                  // only odd harmonics (1,3,5,7,...)
+            radius = 100 * (4 / (n * PI)); // amplitude of each Fourier term (circle radius)
+        } else if (type === 'Sawtooth') {
+            // Sawtooth wave: all harmonics 1,2,3,...
+            // f(x) ~ 2/π Σ ((-1)^(n+1)/n) sin(nx) over n=1 to ∞
+            n = i + 1;                      // all harmonics (1,2,3,4,...)
+            radius = 100 * ((2 * (-1) ** n)/(n * PI)); // Sawtooth wave Fourier series
+        } else if (type === 'Triangle') {
+            // Triangle wave: only odd harmonics 1,3,5,...
+            // f(x) ~ 8/π² Σ ((-1)^((n-1)/2)/n²) sin(nx) over n odd
+            n = i * 2 + 1;                  // only odd harmonics (1,3,5,7,...)
+            radius = 100 * ((8 / (PI ** 2)) * (((-1) ** ((n-1)/2))/(n ** 2) )); // Traingular wave Fourier series
+        }
+        
 
         x += radius * cos(n * time);    // update x using cosine component
         y += radius * sin(n * time);    // update y using sine component

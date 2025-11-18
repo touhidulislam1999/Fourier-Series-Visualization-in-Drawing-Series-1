@@ -3,6 +3,7 @@ let wave = []            // stores the wave points generated from the epicycles
 
 let slider;              // slider that controls number of Fourier terms
 let waveTypeSelect;      // dropdown to choose waveform type
+let nInput;              // 🔹 input box to manually set number of terms
 
 function setup() {
     createCanvas(1900, 700);           // create canvas of given size
@@ -12,12 +13,28 @@ function setup() {
     // 🔹 Increase slider size
     slider.style("width", "1200px");    // sets slider length in pixels
 
+    // 🔹 Input box for manual 'n' (number of terms)
+    nInput = createInput('1');         // default 1
+    nInput.position(990, 60);          // position above the slider (adjust if you want)
+    nInput.size(40);
+    nInput.style("text-align", "center");
+
+
+    // 🔹 Sync: when slider changes, update input box
+    slider.input(() => {
+        nInput.value(slider.value());
+    });
+
+    // 🔹 Sync: when input changes, update slider
+    nInput.input(() => {
+        let v = parseInt(nInput.value());
+        if (isNaN(v)) return;          // ignore non-numeric input
+        v = constrain(v, 1, 1000);     // keep it in [1,1000]
+        slider.value(v);
+    });
+
 
     // Dropdown (choice list) for waveform type
-    fill(255);
-    noStroke();
-    textSize(20);
-    text("Select Wavetype- ", 760, 160);
     waveTypeSelect = createSelect();
     waveTypeSelect.position(600, 160); // position above the slider
     waveTypeSelect.option('Square');
@@ -38,8 +55,9 @@ function draw() {
     fill(255);                          // white text
     noStroke();                         // no outline for text
     textSize(20);                       // text size
-    text("Number of terms: " + slider.value(), 930, 150); // display the current number of Fourier terms
+    text("Number of Terms: " + slider.value(), 930, 150); // display the current number of Fourier terms
     text("Select Wavetype - ", 430, 180);  // display label for waveform type dropdown
+    text("Enter Terms Manually ", 920, 50);
                                         
 
     // let currentN = (slider.value() - 1) * 2 + 1;  // largest n (odd number)
@@ -77,12 +95,12 @@ function draw() {
             // Sawtooth wave: all harmonics 1,2,3,...
             // f(x) ~ 2/π Σ ((-1)^(n+1)/n) sin(nx) over n=1 to ∞
             n = i + 1;                      // all harmonics (1,2,3,4,...)
-            radius = 100 * ((2 * (-1) ** n)/(n * PI)); // Sawtooth wave Fourier series
+            radius = 200 * ((2 * (-1) ** n)/(n * PI)); // Sawtooth wave Fourier series
         } else if (type === 'Triangle') {
             // Triangle wave: only odd harmonics 1,3,5,...
             // f(x) ~ 8/π² Σ ((-1)^((n-1)/2)/n²) sin(nx) over n odd
             n = i * 2 + 1;                  // only odd harmonics (1,3,5,7,...)
-            radius = 100 * ((8 / (PI ** 2)) * (((-1) ** ((n-1)/2))/(n ** 2) )); // Traingular wave Fourier series
+            radius = 158 * ((8 / (PI ** 2)) * (((-1) ** ((n-1)/2))/(n ** 2) )); // Traingular wave Fourier series
         }
         
 
